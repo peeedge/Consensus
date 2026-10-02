@@ -85,7 +85,8 @@ export interface GameSummary {
   /** Share of the survey the player's answers represent, 0-100. */
   consensusPercent: number;
   guessesUsed: number;
-  guessesAllowed: number;
+  missesUsed: number;
+  missesAllowed: number;
   message: string;
 }
 

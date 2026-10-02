@@ -1,8 +1,9 @@
 # Consensus
 
 A daily survey puzzle. One question goes out to a hypothetical survey of 100
-people; six to eight responses make the board. You get five guesses to predict
-which ones — starting with the most popular.
+people; six to eight responses make the board. Correct guesses are free; three
+incorrect ones end the round. The aim is to predict the crowd — starting with
+the most popular answers.
 
 The question is never *what is true*, it is *what would everyone else say*.
 
@@ -10,8 +11,12 @@ The question is never *what is true*, it is *what would everyone else say*.
 
 One command, from a fresh clone:
 
+```bat
+bootstrap.bat          :: Windows - also works by double-clicking it
+```
+
 ```powershell
-.\bootstrap.ps1        # Windows
+.\bootstrap.ps1        # Windows, from PowerShell
 ```
 
 ```bash
@@ -22,10 +27,15 @@ One command, from a fresh clone:
 npm start              # anywhere, if you already have Node
 ```
 
-All three do the same thing: check your Node version, install dependencies only
+They all do the same thing: check your Node version, install dependencies only
 if they are missing or out of date, then start the dev server and open it. Add
 `--check` to typecheck and run the unit tests first, `--build` to build and
 preview the production bundle instead, or `--help` for the rest.
+
+`bootstrap.bat` is a thin wrapper around `bootstrap.ps1` for people who would
+rather not touch PowerShell. It bypasses the execution policy so a locked-down
+machine cannot block it, and holds the window open on failure so a double-click
+that goes wrong is readable instead of vanishing.
 
 Consensus needs **Node 22.12 or newer**; the bootstrap says so plainly rather
 than failing halfway through an install.
@@ -111,13 +121,13 @@ catalogue directly.
 
 ## Scoring
 
-Board position is worth 100, 80, 60, 45, 30, 20, 10 and 5 points. With five
-guesses, a perfect round is 315. Alongside the score the game reports your
+Board position is worth 100, 80, 60, 45, 30, 20, 10 and 5 points. Clearing the
+whole board is a perfect round. Alongside the score the game reports your
 *consensus*: the share of the 100 responses your answers account for. Four
 modest answers can be worth less than one everybody gave.
 
-Finding an answer you already have costs nothing, and neither does submitting an
-empty field.
+Only a miss spends one of the three strikes. Finding an answer, naming one you
+already have, or submitting an empty field costs nothing.
 
 ## Persistence
 

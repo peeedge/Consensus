@@ -1,7 +1,7 @@
 import { getArchive } from '../data/puzzleRepository';
 import { ROUTE_PATHS } from '../hooks/useRoute';
 import { formatShortDate } from '../lib/dateUtils';
-import { MAX_SCORE, scoreOf } from '../lib/gameLogic';
+import { maxScoreFor, scoreOf } from '../lib/gameLogic';
 import type { PuzzleProgress, ScheduledPuzzle } from '../lib/types';
 import { useGameState } from '../state/context';
 
@@ -40,7 +40,7 @@ function ArchiveEntry({
           </span>
           {status === 'complete' && progress ? (
             <span className="archive__score">
-              {scoreOf(progress)} / {MAX_SCORE} points
+              {scoreOf(progress)} / {maxScoreFor(puzzle)} points
             </span>
           ) : status === 'in-progress' ? (
             <span className="archive__score">In progress</span>

@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import { PUZZLES } from '../data/puzzles';
 import {
-  GUESS_LIMIT,
-  MAX_SCORE,
+  MISS_LIMIT,
   createProgress,
+  maxScoreFor,
+  missesRemaining,
+  missesUsed,
   reconcileProgress,
   submitGuess,
   summarize,
@@ -13,10 +15,10 @@ import type { Puzzle, PuzzleProgress } from './types';
 
 const vacation = PUZZLES.find((entry) => entry.id === 'vacation-forget') as Puzzle;
 
-function play(guesses: string[]): PuzzleProgress {
+function play(guesses: string[], puzzle: Puzzle = vacation): PuzzleProgress {
   return guesses.reduce(
-    (progress, guess) => submitGuess(vacation, progress, guess).progress,
-    createProgress(vacation.id),
+    (progress, guess) => submitGuess(puzzle, progress, guess).progress,
+    createProgress(puzzle.id),
   );
 }
 
@@ -33,73 +35,106 @@ describe('submitGuess', () => {
     const result = submitGuess(vacation, createProgress(vacation.id), 'snorkel');
     expect(result.kind).toBe('miss');
     expect(result.progress.revealed).toEqual([]);
-    expect(result.progress.guesses).toHaveLength(1);
+    expect(missesUsed(result.progress)).toBe(1);
   });
 
-  it('does not charge a guess for a repeat', () => {
+  it('does not spend a miss on a correct answer', () => {
+    const progress = play(['phone charger', 'toothbrush', 'passport']);
+    expect(missesUsed(progress)).toBe(0);
+    expect(missesRemaining(progress)).toBe(MISS_LIMIT);
+    expect(progress.status).toBe('in-progress');
+  });
+
+  it('does not spend a miss on a repeat', () => {
     const after = play(['toothbrush']);
     const result = submitGuess(vacation, after, 'tooth brush');
     expect(result.kind).toBe('duplicate');
     expect(result.progress).toBe(after);
-    expect(result.progress.guesses).toHaveLength(1);
+    expect(missesUsed(result.progress)).toBe(0);
   });
 
-  it('does not charge a guess for empty input', () => {
+  it('does not spend a miss on empty input', () => {
     const start = createProgress(vacation.id);
     const result = submitGuess(vacation, start, '   ');
     expect(result.kind).toBe('empty');
     expect(result.progress).toBe(start);
   });
 
-  it('ends the round once the guess limit is spent', () => {
-    const progress = play(['nope one', 'nope two', 'nope three', 'nope four', 'nope five']);
-    expect(progress.guesses).toHaveLength(GUESS_LIMIT);
+  it('lets a good run continue well past three guesses', () => {
+    const progress = play([
+      'phone charger',
+      'nope one',
+      'toothbrush',
+      'passport',
+      'nope two',
+      'sunscreen',
+      'medication',
+    ]);
+    expect(progress.guesses).toHaveLength(7);
+    expect(progress.revealed).toHaveLength(5);
+    expect(missesUsed(progress)).toBe(2);
+    expect(progress.status).toBe('in-progress');
+  });
+
+  it('ends the round on the third miss', () => {
+    const progress = play(['phone charger', 'nope one', 'nope two', 'nope three']);
+    expect(missesUsed(progress)).toBe(MISS_LIMIT);
+    expect(missesRemaining(progress)).toBe(0);
     expect(progress.status).toBe('complete');
     expect(progress.completedAt).not.toBeNull();
   });
 
   it('refuses further guesses once complete', () => {
-    const finished = play(['a', 'b', 'c', 'd', 'e']);
+    const finished = play(['a', 'b', 'c']);
+    expect(finished.status).toBe('complete');
     expect(submitGuess(vacation, finished, 'phone charger').kind).toBe('finished');
   });
 
-  it('ends the round early when the whole board is found', () => {
-    const six = PUZZLES.find((entry) => entry.answers.length === 6);
-    if (!six) return;
-    const progress = six.answers.reduce(
-      (acc, answer) => submitGuess(six, acc, answer.answer).progress,
-      createProgress(six.id),
-    );
+  it('ends the round when the whole board is cleared without a miss', () => {
+    const progress = play(vacation.answers.map((answer) => answer.answer));
     expect(progress.status).toBe('complete');
+    expect(progress.revealed).toHaveLength(vacation.answers.length);
+    expect(missesUsed(progress)).toBe(0);
+  });
+});
+
+describe('maxScoreFor', () => {
+  it('is the sum of every position on the board', () => {
+    expect(maxScoreFor(vacation)).toBe(100 + 80 + 60 + 45 + 30 + 20 + 10 + 5);
+  });
+
+  it('scales down for a shorter board', () => {
+    const seven = PUZZLES.find((entry) => entry.answers.length === 7) as Puzzle;
+    expect(maxScoreFor(seven)).toBe(100 + 80 + 60 + 45 + 30 + 20 + 10);
   });
 });
 
 describe('summarize', () => {
   it('totals points, finds and survey share', () => {
-    const progress = play(['phone charger', 'toothbrush', 'sunscreen', 'wallet', 'snorkel']);
+    const progress = play(['phone charger', 'toothbrush', 'snorkel', 'wallet', 'kayak', 'yeti']);
     const summary = summarize(vacation, progress);
 
-    expect(summary.score).toBe(100 + 80 + 45 + 5);
-    expect(summary.found).toBe(4);
+    expect(summary.score).toBe(100 + 80 + 5);
+    expect(summary.found).toBe(3);
     expect(summary.total).toBe(8);
-    expect(summary.consensusPercent).toBe(31 + 21 + 11 + 3);
-    expect(summary.guessesUsed).toBe(GUESS_LIMIT);
+    expect(summary.consensusPercent).toBe(31 + 21 + 3);
+    expect(summary.missesUsed).toBe(MISS_LIMIT);
+    expect(summary.guessesUsed).toBe(6);
     expect(summary.message).toBeTruthy();
   });
 
-  it('caps a perfect round at the maximum score', () => {
-    const progress = play([
-      'phone charger',
-      'toothbrush',
-      'passport',
-      'sunscreen',
-      'medication',
-    ]);
-    expect(summarize(vacation, progress).score).toBe(MAX_SCORE);
+  it('reports a cleared board as a perfect score', () => {
+    const progress = play(vacation.answers.map((answer) => answer.answer));
+    const summary = summarize(vacation, progress);
+
+    expect(summary.score).toBe(maxScoreFor(vacation));
+    expect(summary.score).toBe(summary.maxScore);
+    expect(summary.consensusPercent).toBe(100);
+    expect(summary.message).toMatch(/clean sweep/i);
   });
 
   it('has a distinct message for finding nothing', () => {
-    const progress = play(['a', 'b', 'c', 'd', 'e']);
+    const progress = play(['a', 'b', 'c']);
     const summary = summarize(vacation, progress);
     expect(summary.score).toBe(0);
     expect(summary.consensusPercent).toBe(0);
@@ -125,10 +160,10 @@ describe('reconcileProgress', () => {
     expect(reconcileProgress(vacation, corrupt).revealed).toEqual([0, 2]);
   });
 
-  it('never keeps more guesses than the limit', () => {
+  it('caps guesses at what a real round could produce', () => {
     const corrupt: PuzzleProgress = {
       ...createProgress(vacation.id),
-      guesses: Array.from({ length: 12 }, () => ({
+      guesses: Array.from({ length: 40 }, () => ({
         raw: 'x',
         outcome: 'miss' as const,
         answerIndex: null,
@@ -136,6 +171,8 @@ describe('reconcileProgress', () => {
         matchedVia: null,
       })),
     };
-    expect(reconcileProgress(vacation, corrupt).guesses).toHaveLength(GUESS_LIMIT);
+    expect(reconcileProgress(vacation, corrupt).guesses).toHaveLength(
+      vacation.answers.length + MISS_LIMIT,
+    );
   });
 });

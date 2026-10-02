@@ -16,7 +16,8 @@ interface AnswerInputProps {
   /** Owned by the parent so it can refocus the field after a guess lands. */
   inputRef: RefObject<HTMLInputElement | null>;
   disabled: boolean;
-  remaining: number;
+  /** Misses the player has left before the round ends. */
+  missesLeft: number;
   feedback: Feedback | null;
 }
 
@@ -32,7 +33,7 @@ export function AnswerInput({
   onSubmit,
   inputRef,
   disabled,
-  remaining,
+  missesLeft,
   feedback,
 }: AnswerInputProps) {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -73,7 +74,7 @@ export function AnswerInput({
       </button>
 
       <p className="answer-input__help" id="guess-help">
-        {remaining === 1 ? 'Last guess' : `${remaining} guesses left`}
+        {missesLeft === 1 ? 'One miss left' : `${missesLeft} misses left`}
       </p>
 
       <p

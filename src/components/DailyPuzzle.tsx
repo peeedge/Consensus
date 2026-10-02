@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 import {
   consensusPercentOf,
-  guessesRemaining,
+  missesRemaining,
   pointsForPosition,
   scoreOf,
 } from '../lib/gameLogic';
@@ -31,7 +31,7 @@ export function DailyPuzzle({ puzzle }: { puzzle: ScheduledPuzzle }) {
 
   const isToday = puzzle.servedDate === today;
   const complete = progress.status === 'complete';
-  const remaining = guessesRemaining(progress);
+  const missesLeft = missesRemaining(progress);
   const score = scoreOf(progress);
   const consensusPercent = consensusPercentOf(puzzle, progress);
 
@@ -105,7 +105,7 @@ export function DailyPuzzle({ puzzle }: { puzzle: ScheduledPuzzle }) {
           onSubmit={handleSubmit}
           inputRef={inputRef}
           disabled={complete}
-          remaining={remaining}
+          missesLeft={missesLeft}
           feedback={feedback}
         />
       )}

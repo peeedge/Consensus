@@ -11,20 +11,23 @@ import type {
   PuzzleProgress,
 } from './types';
 
-/** Guesses allowed per puzzle. Repeats and empty input never cost a guess. */
-export const GUESS_LIMIT = 5;
+/**
+ * Misses allowed per puzzle. Only answers that are not on the board count:
+ * correct guesses, repeats and empty input are all free, so the round lasts as
+ * long as the player keeps reading the crowd correctly.
+ */
+export const MISS_LIMIT = 3;
 
 /** Points by board position, rewarding reading the crowd over merely being valid. */
 export const POSITION_POINTS = [100, 80, 60, 45, 30, 20, 10, 5] as const;
 
-/** The most anyone can score: the five highest-value positions. */
-export const MAX_SCORE = POSITION_POINTS.slice(0, GUESS_LIMIT).reduce(
-  (total, points) => total + points,
-  0,
-);
-
 export function pointsForPosition(index: number): number {
   return POSITION_POINTS[index] ?? 0;
+}
+
+/** The best possible round on a given board: every answer found. */
+export function maxScoreFor(puzzle: Puzzle): number {
+  return puzzle.answers.reduce((total, _answer, index) => total + pointsForPosition(index), 0);
 }
 
 export function createProgress(puzzleId: string): PuzzleProgress {
@@ -41,8 +44,15 @@ export function guessesUsed(progress: PuzzleProgress): number {
   return progress.guesses.length;
 }
 
-export function guessesRemaining(progress: PuzzleProgress): number {
-  return Math.max(0, GUESS_LIMIT - guessesUsed(progress));
+export function missesUsed(progress: PuzzleProgress): number {
+  return progress.guesses.reduce(
+    (total, guess) => (guess.outcome === 'miss' ? total + 1 : total),
+    0,
+  );
+}
+
+export function missesRemaining(progress: PuzzleProgress): number {
+  return Math.max(0, MISS_LIMIT - missesUsed(progress));
 }
 
 export function scoreOf(progress: PuzzleProgress): number {
@@ -121,8 +131,7 @@ export function submitGuess(
     completedAt: null,
   };
 
-  const exhausted = guesses.length >= GUESS_LIMIT;
-  if (exhausted || allAnswersFound(puzzle, next)) {
+  if (missesUsed(next) >= MISS_LIMIT || allAnswersFound(puzzle, next)) {
     next.status = 'complete';
     next.completedAt = now;
   }
@@ -145,8 +154,13 @@ export function concede(progress: PuzzleProgress, now: number = Date.now()): Puz
 }
 
 /** Closing line, keyed off how much of the crowd the player actually captured. */
-export function performanceMessage(consensusPercent: number, found: number): string {
+export function performanceMessage(
+  consensusPercent: number,
+  found: number,
+  total: number,
+): string {
   if (found === 0) return 'The crowd went somewhere you did not.';
+  if (found === total) return 'A clean sweep. Nothing escaped you.';
   if (consensusPercent >= 80) return 'You are the consensus.';
   if (consensusPercent >= 65) return 'Unusually well calibrated.';
   if (consensusPercent >= 50) return 'You read the room.';
@@ -158,16 +172,18 @@ export function performanceMessage(consensusPercent: number, found: number): str
 export function summarize(puzzle: Puzzle, progress: PuzzleProgress): GameSummary {
   const consensusPercent = consensusPercentOf(puzzle, progress);
   const found = progress.revealed.length;
+  const total = puzzle.answers.length;
 
   return {
     score: scoreOf(progress),
-    maxScore: MAX_SCORE,
+    maxScore: maxScoreFor(puzzle),
     found,
-    total: puzzle.answers.length,
+    total,
     consensusPercent,
     guessesUsed: guessesUsed(progress),
-    guessesAllowed: GUESS_LIMIT,
-    message: performanceMessage(consensusPercent, found),
+    missesUsed: missesUsed(progress),
+    missesAllowed: MISS_LIMIT,
+    message: performanceMessage(consensusPercent, found, total),
   };
 }
 
@@ -188,7 +204,8 @@ export function reconcileProgress(
     return true;
   });
 
-  const guesses = progress.guesses.slice(0, GUESS_LIMIT);
+  // A round cannot run longer than clearing the board plus spending every miss.
+  const guesses = progress.guesses.slice(0, puzzle.answers.length + MISS_LIMIT);
 
   return {
     puzzleId: puzzle.id,

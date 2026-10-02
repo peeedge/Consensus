@@ -92,38 +92,58 @@ async function run() {
   await shoot(page, '01-desktop-start');
 
   // ---- 2. Play a round ----
+  // Today's board: keys 27, phone 21, the remote 18, glasses 12, socks 9,
+  // chapstick 7, phone charger 6. Three misses end the round; hits are free.
+  const missesLeft = () => page.locator('#guess-help').innerText();
+
   const feedback1 = await guess(page, 'keys');
   check(/on the board/i.test(feedback1), `hit on "keys" -> ${feedback1}`);
+  check(
+    (await missesLeft()).includes('3 misses left'),
+    'a correct answer does not spend a miss',
+  );
   await shoot(page, '02-desktop-first-reveal');
 
   const feedback2 = await guess(page, 'my phone');
-  check(/on the board\./i.test(feedback2) && !/not on/i.test(feedback2), `hit on "my phone" -> ${feedback2}`);
+  check(
+    /on the board\./i.test(feedback2) && !/not on/i.test(feedback2),
+    `hit on "my phone" -> ${feedback2}`,
+  );
 
   const feedback3 = await guess(page, 'banana');
   check(/not on the board/i.test(feedback3), `miss on "banana" -> ${feedback3}`);
+  check((await missesLeft()).includes('2 misses left'), 'a miss is counted');
 
   const feedback4 = await guess(page, 'tv remote');
   check(!/not on/i.test(feedback4), `hit on "tv remote" -> ${feedback4}`);
 
+  await guess(page, 'sunglasses');
+  check((await missesLeft()).includes('One miss left'), 'the counter reaches "One miss left"');
   check(
-    (await page.locator('#guess-help').innerText()).includes('Last guess'),
-    'guess counter reaches "Last guess"',
+    (await page.locator('.miss-track__mark--spent').count()) === 2,
+    'the miss track shows two spent marks',
   );
 
-  await guess(page, 'sunglasses');
+  // A fifth guess would have ended the old five-guess round; here play goes on.
+  const feedback6 = await guess(page, 'socks');
+  check(!/not on/i.test(feedback6), `still playing on guess six -> ${feedback6}`);
+
+  await guess(page, 'helicopter');
   await page.waitForSelector('.complete', { timeout: 3000 });
-  check(true, 'round ends automatically after the fifth guess');
+  check(true, 'round ends on the third miss');
 
   // ---- 3. Summary numbers ----
   const figures = await page.locator('.complete__figure').allInnerTexts();
-  check(figures[0]?.trim() === '240', `score is 240 (saw "${figures[0]?.trim()}")`);
-  check(/3\s*of\s*7/.test(figures[1] ?? ''), `found 3 of 7 (saw "${figures[1]?.replace(/\s+/g, ' ')}")`);
-  check(/^66/.test(figures[2]?.trim() ?? ''), `consensus is 66% (saw "${figures[2]?.trim()}")`);
+  check(figures[0]?.trim() === '270', `score is 270 (saw "${figures[0]?.trim()}")`);
+  check(/4\s*of\s*7/.test(figures[1] ?? ''), `found 4 of 7 (saw "${figures[1]?.replace(/\s+/g, ' ')}")`);
+  check(/^75/.test(figures[2]?.trim() ?? ''), `consensus is 75% (saw "${figures[2]?.trim()}")`);
+  const ceiling = await page.locator('.complete__caption').first().innerText();
+  check(ceiling.includes('345'), `the ceiling is the whole board, 345 (saw "${ceiling}")`);
 
   const shareMarks = await page.locator('.share__mark').count();
-  check(shareMarks === 5, `share card has 5 marks (saw ${shareMarks})`);
+  check(shareMarks === 7, `share card has one mark per guess, 7 (saw ${shareMarks})`);
   const shareTotal = await page.locator('.share__total').innerText();
-  check(shareTotal.includes('240'), `share total says 240 (saw "${shareTotal}")`);
+  check(shareTotal.includes('270'), `share total says 270 (saw "${shareTotal}")`);
   const shareText = await page.locator('.share__card').innerText();
   check(
     !/keys|phone|remote/i.test(shareText),
@@ -132,7 +152,7 @@ async function run() {
   const countdown = await page.locator('.complete__clock').innerText();
   check(/^\d+:\d{2}:\d{2}$/.test(countdown), `countdown renders (saw "${countdown}")`);
   check(
-    (await page.locator('.board__row--disclosed').count()) === 4,
+    (await page.locator('.board__row--disclosed').count()) === 3,
     'unfound answers are disclosed at the end',
   );
   await shoot(page, '03-desktop-complete');
@@ -141,7 +161,7 @@ async function run() {
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForSelector('.complete');
   const afterReload = await page.locator('.complete__figure').first().innerText();
-  check(afterReload.trim() === '240', `score survives a reload (saw "${afterReload.trim()}")`);
+  check(afterReload.trim() === '270', `score survives a reload (saw "${afterReload.trim()}")`);
   check(
     (await page.locator('#guess').count()) === 0,
     'the input is gone once the round is over',

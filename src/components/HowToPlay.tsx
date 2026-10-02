@@ -1,5 +1,5 @@
 import { ROUTE_PATHS } from '../hooks/useRoute';
-import { GUESS_LIMIT, MAX_SCORE, POSITION_POINTS } from '../lib/gameLogic';
+import { MISS_LIMIT, POSITION_POINTS } from '../lib/gameLogic';
 import { useGameState } from '../state/context';
 
 export function HowToPlay() {
@@ -33,13 +33,20 @@ export function HowToPlay() {
       <section className="how__section">
         <h2 className="how__heading">Guessing</h2>
         <ul className="how__list">
-          <li>You get {GUESS_LIMIT} guesses.</li>
-          <li>A guess that is already on your board costs nothing &mdash; guess again.</li>
+          <li>
+            You get {MISS_LIMIT} misses. Only answers that are not on the board count against
+            you.
+          </li>
+          <li>
+            A correct answer costs nothing, so a good run can go on as long as you keep reading
+            the crowd.
+          </li>
+          <li>Naming something you already found is free too &mdash; just guess again.</li>
           <li>
             You do not need the exact wording. Plurals, spacing, small typos and common synonyms
             are accepted, so &ldquo;cell phone charger&rdquo; finds &ldquo;phone charger.&rdquo;
           </li>
-          <li>The round ends when you run out of guesses or clear the board.</li>
+          <li>The round ends on your third miss, or when you clear the board.</li>
         </ul>
       </section>
 
@@ -47,7 +54,7 @@ export function HowToPlay() {
         <h2 className="how__heading">Scoring</h2>
         <p>
           Higher positions are worth more, because predicting the crowd&rsquo;s first instinct is
-          the harder trick. A perfect round is {MAX_SCORE} points.
+          the harder trick. Clearing the whole board is a perfect round.
         </p>
         <ol className="how__points">
           {POSITION_POINTS.map((points, index) => (

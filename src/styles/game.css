@@ -238,13 +238,13 @@
   color: var(--ink-muted);
 }
 
-.guess-track {
+.miss-track {
   display: flex;
   gap: 0.3125rem;
   padding-block-start: 0.1875rem;
 }
 
-.guess-track__mark {
+.miss-track__mark {
   display: grid;
   place-items: center;
   inline-size: 1.5rem;
@@ -260,14 +260,9 @@
     color var(--duration) var(--ease);
 }
 
-.guess-track__mark--hit {
-  background: var(--accent-wash);
-  border-color: color-mix(in srgb, var(--accent) 50%, var(--rule));
-  color: var(--accent-ink);
-}
-
-.guess-track__mark--miss {
-  border-color: color-mix(in srgb, var(--alert) 40%, var(--rule));
+.miss-track__mark--spent {
+  background: color-mix(in srgb, var(--alert) 8%, transparent);
+  border-color: color-mix(in srgb, var(--alert) 45%, var(--rule));
   color: var(--alert);
 }
 

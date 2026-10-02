@@ -1,0 +1,70 @@
+/* Design tokens: one restrained warm-paper palette, light and dark. */
+
+:root {
+  color-scheme: light dark;
+
+  /* Typefaces are system stacks on purpose — nothing to download, no layout
+     shift, and a bookish serif is available on every major platform. */
+  --font-serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua', Georgia,
+    'Times New Roman', serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', 'Segoe UI Mono', Menlo, Consolas,
+    monospace;
+
+  --paper: #faf8f3;
+  --paper-raised: #ffffff;
+  --paper-sunken: #f2eee4;
+  --ink: #17160f;
+  --ink-muted: #6b6555;
+  --ink-faint: #9c957f;
+  --rule: #e4dece;
+  --rule-strong: #cdc5ad;
+
+  --accent: #2e6b4e;
+  --accent-ink: #1f4d38;
+  --accent-wash: rgba(46, 107, 78, 0.1);
+  --highlight: #9a6d18;
+  --highlight-wash: rgba(154, 109, 24, 0.12);
+  --alert: #9d3a26;
+  --focus: #1e5ea8;
+
+  --measure: 34rem;
+  --gutter: clamp(1.25rem, 5vw, 2rem);
+
+  --step-xs: 0.75rem;
+  --step-sm: 0.8125rem;
+  --step-md: 0.9375rem;
+  --step-lg: 1.0625rem;
+  --step-xl: clamp(1.5rem, 1.1rem + 2vw, 2rem);
+  --step-2xl: clamp(2.25rem, 1.6rem + 3.2vw, 3.25rem);
+
+  --radius: 3px;
+  --radius-lg: 6px;
+
+  --duration-fast: 120ms;
+  --duration: 260ms;
+  --duration-slow: 520ms;
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #131210;
+    --paper-raised: #1b1a16;
+    --paper-sunken: #100f0d;
+    --ink: #f1ece0;
+    --ink-muted: #a09884;
+    --ink-faint: #6f6957;
+    --rule: #2e2c25;
+    --rule-strong: #464236;
+
+    --accent: #79c09a;
+    --accent-ink: #9ed6b6;
+    --accent-wash: rgba(121, 192, 154, 0.12);
+    --highlight: #d7ad63;
+    --highlight-wash: rgba(215, 173, 99, 0.14);
+    --alert: #e09076;
+    --focus: #7fb2ea;
+  }
+}

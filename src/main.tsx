@@ -1,0 +1,19 @@
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+
+import App from './App';
+import { GameStateProvider } from './state/GameStateProvider';
+import './styles/index.css';
+
+const container = document.getElementById('root');
+if (!container) {
+  throw new Error('Root element #root was not found.');
+}
+
+createRoot(container).render(
+  <StrictMode>
+    <GameStateProvider>
+      <App />
+    </GameStateProvider>
+  </StrictMode>,
+);

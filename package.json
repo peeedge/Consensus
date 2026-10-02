@@ -16,6 +16,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "smoke": "node scripts/smoke-test.mjs",
+    "stop": "powershell -NoProfile -ExecutionPolicy Bypass -File stop-lingering.ps1",
     "typecheck": "tsc -b --noEmit",
     "preview": "vite preview"
   },

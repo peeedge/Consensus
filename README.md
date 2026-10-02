@@ -50,6 +50,7 @@ than failing halfway through an install.
 | `npm run preview` | Serve the production build |
 | `npm test` | Unit tests for matching, scoring, dates and streaks |
 | `npm run smoke` | Plays a full round in a real browser against a running dev server |
+| `npm run stop` | Stop leftover dev servers, smoke tests, and browsers still using this folder |
 | `npm run lint` | oxlint |
 | `npm run typecheck` | `tsc` with no emit |
 
@@ -57,6 +58,13 @@ than failing halfway through an install.
 Set `SMOKE_CHANNEL=chrome`, or `SMOKE_CHANNEL=bundled` after
 `npx playwright install chromium`, to use something else. Screenshots are
 written to `screenshots/`.
+
+If Windows will not rename or delete this folder because a program still has
+it open, `npm run stop`, `stop-lingering.bat`, or `.\stop-lingering.ps1` stops
+a leftover dev server, smoke test, or the browser that test spawned. It leaves
+the terminal you ran it from alone. `stop-lingering.bat` is the same kind of
+wrapper as `bootstrap.bat`: it bypasses the execution policy and holds the
+window open when a double-click fails.
 
 ## How the code is laid out
 

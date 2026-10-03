@@ -66,6 +66,12 @@ the terminal you ran it from alone. `stop-lingering.bat` is the same kind of
 wrapper as `bootstrap.bat`: it bypasses the execution policy and holds the
 window open when a double-click fails.
 
+The live site is https://peeedge.github.io/Consensus/. A push to `main` builds
+the app and writes it to the `gh-pages` branch. In the repo, **Settings →
+Pages → Build and deployment** must be **Deploy from a branch**, with the
+branch set to `gh-pages` and the folder set to `/ (root)` — not `main`.
+Publishing `main` serves the source `index.html` and the page stays blank.
+
 ## How the code is laid out
 
 ```

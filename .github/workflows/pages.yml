@@ -5,17 +5,18 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Push the Vite build to the gh-pages branch. GitHub's default "pages build
+# and deployment" job publishes the source tree from main, which leaves the
+# site as a blank dark page because the browser never gets the bundled JS.
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,16 +28,8 @@ jobs:
       - run: npm run build
         env:
           PAGES_BASE: /Consensus/
-      - uses: actions/upload-pages-artifact@v3
+      - uses: JamesIves/github-pages-deploy-action@v4
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+          folder: dist
+          branch: gh-pages
+          clean: true

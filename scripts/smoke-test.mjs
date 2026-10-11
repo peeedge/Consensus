@@ -93,13 +93,13 @@ async function run() {
 
   // ---- 2. Play a round ----
   // Today's board: keys 27, phone 21, the remote 18, glasses 12, socks 9,
-  // chapstick 7, phone charger 6. Three misses end the round; hits are free.
+  // chapstick 7, phone charger 6. Five misses end the round; hits are free.
   const missesLeft = () => page.locator('#guess-help').innerText();
 
   const feedback1 = await guess(page, 'keys');
   check(/on the board/i.test(feedback1), `hit on "keys" -> ${feedback1}`);
   check(
-    (await missesLeft()).includes('3 misses left'),
+    (await missesLeft()).includes('5 misses left'),
     'a correct answer does not spend a miss',
   );
   await shoot(page, '02-desktop-first-reveal');
@@ -112,13 +112,13 @@ async function run() {
 
   const feedback3 = await guess(page, 'banana');
   check(/not on the board/i.test(feedback3), `miss on "banana" -> ${feedback3}`);
-  check((await missesLeft()).includes('2 misses left'), 'a miss is counted');
+  check((await missesLeft()).includes('4 misses left'), 'a miss is counted');
 
   const feedback4 = await guess(page, 'tv remote');
   check(!/not on/i.test(feedback4), `hit on "tv remote" -> ${feedback4}`);
 
   await guess(page, 'sunglasses');
-  check((await missesLeft()).includes('One miss left'), 'the counter reaches "One miss left"');
+  check((await missesLeft()).includes('3 misses left'), 'a second miss is counted');
   check(
     (await page.locator('.miss-track__mark--spent').count()) === 2,
     'the miss track shows two spent marks',
@@ -129,8 +129,11 @@ async function run() {
   check(!/not on/i.test(feedback6), `still playing on guess six -> ${feedback6}`);
 
   await guess(page, 'helicopter');
+  await guess(page, 'submarine');
+  check((await missesLeft()).includes('One miss left'), 'the counter reaches "One miss left"');
+  await guess(page, 'volcano');
   await page.waitForSelector('.complete', { timeout: 3000 });
-  check(true, 'round ends on the third miss');
+  check(true, 'round ends on the fifth miss');
 
   // ---- 3. Summary numbers ----
   const figures = await page.locator('.complete__figure').allInnerTexts();
@@ -141,7 +144,7 @@ async function run() {
   check(ceiling.includes('345'), `the ceiling is the whole board, 345 (saw "${ceiling}")`);
 
   const shareMarks = await page.locator('.share__mark').count();
-  check(shareMarks === 7, `share card has one mark per guess, 7 (saw ${shareMarks})`);
+  check(shareMarks === 9, `share card has one mark per guess, 9 (saw ${shareMarks})`);
   const shareTotal = await page.locator('.share__total').innerText();
   check(shareTotal.includes('270'), `share total says 270 (saw "${shareTotal}")`);
   const shareText = await page.locator('.share__card').innerText();

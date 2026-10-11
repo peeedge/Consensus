@@ -16,7 +16,7 @@ import type {
  * correct guesses, repeats and empty input are all free, so the round lasts as
  * long as the player keeps reading the crowd correctly.
  */
-export const MISS_LIMIT = 3;
+export const MISS_LIMIT = 5;
 
 /** Points by board position, rewarding reading the crowd over merely being valid. */
 export const POSITION_POINTS = [100, 80, 60, 45, 30, 20, 10, 5] as const;

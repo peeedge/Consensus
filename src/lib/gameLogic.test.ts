@@ -76,8 +76,15 @@ describe('submitGuess', () => {
     expect(progress.status).toBe('in-progress');
   });
 
-  it('ends the round on the third miss', () => {
-    const progress = play(['phone charger', 'nope one', 'nope two', 'nope three']);
+  it('ends the round on the fifth miss', () => {
+    const progress = play([
+      'phone charger',
+      'nope one',
+      'nope two',
+      'nope three',
+      'nope four',
+      'nope five',
+    ]);
     expect(missesUsed(progress)).toBe(MISS_LIMIT);
     expect(missesRemaining(progress)).toBe(0);
     expect(progress.status).toBe('complete');
@@ -85,7 +92,7 @@ describe('submitGuess', () => {
   });
 
   it('refuses further guesses once complete', () => {
-    const finished = play(['a', 'b', 'c']);
+    const finished = play(['a', 'b', 'c', 'd', 'e']);
     expect(finished.status).toBe('complete');
     expect(submitGuess(vacation, finished, 'phone charger').kind).toBe('finished');
   });
@@ -111,7 +118,16 @@ describe('maxScoreFor', () => {
 
 describe('summarize', () => {
   it('totals points, finds and survey share', () => {
-    const progress = play(['phone charger', 'toothbrush', 'snorkel', 'wallet', 'kayak', 'yeti']);
+    const progress = play([
+      'phone charger',
+      'toothbrush',
+      'snorkel',
+      'wallet',
+      'kayak',
+      'yeti',
+      'canoe',
+      'hammock',
+    ]);
     const summary = summarize(vacation, progress);
 
     expect(summary.score).toBe(100 + 80 + 5);
@@ -119,7 +135,7 @@ describe('summarize', () => {
     expect(summary.total).toBe(8);
     expect(summary.consensusPercent).toBe(31 + 21 + 3);
     expect(summary.missesUsed).toBe(MISS_LIMIT);
-    expect(summary.guessesUsed).toBe(6);
+    expect(summary.guessesUsed).toBe(8);
     expect(summary.message).toBeTruthy();
   });
 
@@ -134,7 +150,7 @@ describe('summarize', () => {
   });
 
   it('has a distinct message for finding nothing', () => {
-    const progress = play(['a', 'b', 'c']);
+    const progress = play(['a', 'b', 'c', 'd', 'e']);
     const summary = summarize(vacation, progress);
     expect(summary.score).toBe(0);
     expect(summary.consensusPercent).toBe(0);

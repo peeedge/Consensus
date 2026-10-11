@@ -140,7 +140,7 @@ whole board is a perfect round. Alongside the score the game reports your
 *consensus*: the share of the 100 responses your answers account for. Four
 modest answers can be worth less than one everybody gave.
 
-Only a miss spends one of the three strikes. Finding an answer, naming one you
+Only a miss spends one of the five strikes. Finding an answer, naming one you
 already have, or submitting an empty field costs nothing.
 
 ## Persistence
